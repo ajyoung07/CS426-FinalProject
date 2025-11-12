@@ -26,3 +26,7 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Other private files
+notes.md
+drafts/
