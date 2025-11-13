@@ -66,7 +66,7 @@ def health_check():
         }
 
     return {
-        "service": "chat-service",
+        "service": "game-service",
         "status": "healthy" if isHealthy else "unhealthy",
         "dependencies": dependencies
     }

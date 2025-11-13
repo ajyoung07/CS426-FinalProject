@@ -68,8 +68,6 @@ services:
     build:
       context: ./user-service
       dockerfile: Dockerfile
-    ports:
-      - "8001:8000"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -90,8 +88,6 @@ services:
     build:
       context: ./chat-service
       dockerfile: Dockerfile
-    ports:
-      - "8002:8000"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -114,8 +110,6 @@ services:
     build:
       context: ./game-service
       dockerfile: Dockerfile
-    ports:
-      - "8003:8000"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -133,6 +127,21 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+  nginx:
+    image: nginx:alpine
+    container_name: api-gateway
+    depends_on:
+      user-service:
+        condition: service_healthy
+      chat-service:
+        condition: service_healthy
+      game-service:
+        condition: service_healthy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    restart: unless-stopped
 
 volumes:
   pgdata:
