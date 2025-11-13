@@ -1,27 +1,15 @@
-from datetime import datetime
+from datetime import timedelta
 from typing import Dict, Literal
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 
 class Dependency(BaseModel):
     status: Literal["healthy", "unhealthy"]
-    response_time_ms: datetime
+    response_time_ms: timedelta
 
 
 class HealthResponse(BaseModel):
     service: str
     status: Literal["healthy", "unhealthy"]
     dependencies: Dict[str, Dependency] | None = None
-
-
-class UserCreate(BaseModel):
-    name: str
-    email: EmailStr
-
-
-class UserResponse(BaseModel):
-    id: str
-    name: str
-    email: str
-    created_at: str

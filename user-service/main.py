@@ -28,14 +28,17 @@ def health_check():
                 "service": "user-service",
                 "status": "healthy",
                 "dependencies": {
-                    "redis": "healthy",
-                    "response_time_ms": dt
+                    "redis": {"status": "healthy",
+                              "response_time_ms": dt
+                              }
                 }
             }
         else:
             # Manually raise exception to go to except block
             raise ConnectionError
+
     except ConnectionError:
+        # Redis not working
         dt = time() - start
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -43,8 +46,9 @@ def health_check():
                 "service": "user-service",
                 "status": "unhealthy",
                 "dependencies": {
-                    "redis": "unhealthy",
-                    "response_time_ms": dt
+                    "redis": {"status": "unhealthy",
+                              "response_time_ms": dt
+                              }
                 }
             }
         )

@@ -1,7 +1,7 @@
 services:
-  db:
+  user_db:
     image: postgres:16
-    container_name: postgres_db
+    container_name: user_db
     environment:
       - POSTGRES_USER=app
       - POSTGRES_PASSWORD=app
@@ -10,15 +10,39 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+  chat_db:
+    image: postgres:16
+    container_name: chat_db
+    environment:
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+      - POSTGRES_DB=appdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  game_db:
+    image: postgres:16
+    container_name: game_db
+    environment:
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+      - POSTGRES_DB=appdb
+    ports:
+      - "5434:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
     depends_on:
-      - db
+      - user_db
+      - chat_db
+      - game_db
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@example.com
-      - PGADMIN_DEFAULT_PASSWORD=admin
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
     volumes:
@@ -49,8 +73,59 @@ services:
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - DB_HOST=user_db
+      - DB_PORT=5432
     depends_on:
       - redis
+      - user_db
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  chat-service:
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - USER_HOST=user-service
+      - USER_PORT=8000
+      - DB_HOST=chat_db
+      - DB_PORT=5432
+    depends_on:
+      - redis
+      - user-service
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  game-service:
+    build:
+      context: ./game-service
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - USER_HOST=user-service
+      - USER_PORT=8000
+      - DB_HOST=game_db
+      - DB_PORT=5432
+    depends_on:
+      - redis
+      - user-service
     restart: unless-stopped
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
