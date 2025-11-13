@@ -22,9 +22,9 @@ and the system should be up and running on `http://localhost`. You should see so
 # Usage instructions
 To check the health of an endpoint, simply use the command
 ```bash
-    curl http://localhost:8001/health
+    curl http://localhost:8080/{service-name}/health
 ```
-You can replace the 8001 with 8002 or 8003 to check the other endpoints' health. You should recieve something of the form
+Where `{service-name}` is either `user`, `chat`, or `game`. You should recieve something of the form
 
 ```json
     {
@@ -40,6 +40,82 @@ You can replace the 8001 with 8002 or 8003 to check the other endpoints' health.
 ```
 # API Documentation
 
-# Testing
+We have the following endpoints:
 
+- `user/health` will return
+```json
+    {
+        "service": "user-service",
+        "status": "healthy" | "unhealthy",
+        "dependencies": {
+            "redis": {
+                "status": "healthy" | "unhealthy",
+                "response_time_ms" <TIME_IN_MS>
+            }
+        }
+    }
+```
+- `chat/health` will return
+```json
+    {
+        "service": "chat-service",
+        "status": "healthy" | "unhealthy",
+        "dependencies": {
+            "redis": {
+                "status": "healthy" | "unhealthy",
+                "response_time_ms" <TIME_IN_MS>
+            },
+            "user-service" : {
+                "status": "healthy" | "unhealthy",
+                "response_time_ms" <TIME_IN_MS>
+            }
+        }
+    }
+```
+- `game/health` will return
+```json
+    {
+        "service": "game-service",
+        "status": "healthy" | "unhealthy",
+        "dependencies": {
+            "redis": {
+                "status": "healthy" | "unhealthy",
+                "response_time_ms" <TIME_IN_MS>
+            },
+            "user-service" : {
+                "status": "healthy" | "unhealthy",
+                "response_time_ms" <TIME_IN_MS>
+            }
+        }
+    }
+```
+
+# Testing
+To test the system, I would first try seeing that all services are up and running using `docker-compose ps`. Then, I would test the health endpoints documented above.
 # Project structure
+Here is the file-tree
+
+```
+.
+├── architecture-diagram.png
+├── chat-service
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── models.py
+│   └── requirements.txt
+├── docker-compose.yml
+├── game-service
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── models.py
+│   └── requirements.txt
+├── nginx
+│   └── nginx.conf
+├── README.md
+└── user-service
+    ├── Dockerfile
+    ├── main.py
+    ├── models.py
+    └── requirements.txt
+```
+Each directory ending in `-service` corresponds to one of the microservices. They each have a Dockerfile, which is what sets up each microservice, a `main.py` which is where each service's endpoint is set up, and a `models.py` which gives the validation models for what each endpoint recieves/sends.

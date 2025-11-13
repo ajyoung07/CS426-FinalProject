@@ -30,3 +30,5 @@ Thumbs.db
 # Other private files
 notes.md
 drafts/
+*.zip
+architecture.md
